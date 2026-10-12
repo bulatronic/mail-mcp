@@ -1,0 +1,27 @@
+From: Forwarder <forwarder@example.com>
+To: user@mail.ru
+Subject: 
+Date: Mon, 12 Oct 2026 13:00:00 +0300
+Message-ID: <forwarded-empty@example.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="bound-fwd"
+
+--bound-fwd
+Content-Type: text/plain; charset=utf-8
+
+Please see the forwarded message below.
+
+--bound-fwd
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+From: Original <original@example.com>
+To: forwarder@example.com
+Subject: Original subject inside
+Date: Sun, 11 Oct 2026 09:00:00 +0300
+Message-ID: <original-inner@example.com>
+Content-Type: text/plain; charset=utf-8
+
+Inner body of the forwarded message.
+
+--bound-fwd--

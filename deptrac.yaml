@@ -29,6 +29,8 @@ deptrac:
           composerLockPath: composer.lock
           packages:
             - symfony/mime
+            - directorytree/imapengine
+            - zbateson/mail-mime-parser
 
     - name: Mcp
       collectors:
