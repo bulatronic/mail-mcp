@@ -10,10 +10,14 @@ use Mcp\Server\Session\FileSessionStore;
 use Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
 use Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
 use Mcp\Server\Transport\StreamableHttpTransport;
+use MailMcp\Application\UseCase\SaveDraft;
 use MailMcp\Infrastructure\Config\MailConfig;
 use MailMcp\Infrastructure\Imap\FolderResolver;
 use MailMcp\Infrastructure\Imap\ImapConnectionFactory;
+use MailMcp\Infrastructure\Imap\ImapDraftWriter;
 use MailMcp\Infrastructure\Imap\ImapMailboxReader;
+use MailMcp\Infrastructure\Mime\DraftMimeBuilder;
+use MailMcp\Ports\DraftWriter;
 use MailMcp\Ports\MailboxReader;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
@@ -53,14 +57,22 @@ if (!is_dir($sessionDir) && !mkdir($sessionDir, 0700, true) && !is_dir($sessionD
 }
 
 $mailConfig = MailConfig::fromEnvironment();
-$mailboxReader = new ImapMailboxReader(
-    new ImapConnectionFactory($mailConfig),
-    new FolderResolver($mailConfig),
+$connectionFactory = new ImapConnectionFactory($mailConfig);
+$folderResolver = new FolderResolver($mailConfig);
+$mailboxReader = new ImapMailboxReader($connectionFactory, $folderResolver);
+$draftWriter = new ImapDraftWriter($connectionFactory, $folderResolver, new DraftMimeBuilder());
+$saveDraft = new SaveDraft(
+    $mailboxReader,
+    $draftWriter,
+    $mailConfig->username,
+    $mailConfig->fromName,
 );
 
 $container = new Container();
 $container->set(MailConfig::class, $mailConfig);
 $container->set(MailboxReader::class, $mailboxReader);
+$container->set(DraftWriter::class, $draftWriter);
+$container->set(SaveDraft::class, $saveDraft);
 
 $server = Server::builder()
     ->setServerInfo('mail-mcp', '0.1.0')

@@ -10,13 +10,17 @@ use DirectoryTree\ImapEngine\Exceptions\ImapConnectionException;
 use DirectoryTree\ImapEngine\FolderInterface;
 use DirectoryTree\ImapEngine\Message;
 use DirectoryTree\ImapEngine\MessageQueryInterface;
+use MailMcp\Domain\Draft\Recipient;
+use MailMcp\Domain\Draft\SavedDraftInfo;
 use MailMcp\Domain\Error\MailboxError;
 use MailMcp\Domain\Message\MailboxRole;
 use MailMcp\Domain\Message\MailboxState;
 use MailMcp\Domain\Message\MessageContent;
 use MailMcp\Domain\Message\MessageListResult;
 use MailMcp\Domain\Message\ReplyLookupResult;
+use MailMcp\Domain\Message\ReplySource;
 use MailMcp\Infrastructure\Mime\MessageContentFactory;
+use MailMcp\Infrastructure\Mime\TextSanitizer;
 use MailMcp\Ports\MailboxReader;
 use Throwable;
 
@@ -24,7 +28,7 @@ final readonly class ImapMailboxReader implements MailboxReader
 {
     public function __construct(
         private ImapConnectionFactory $connectionFactory,
-        private FolderResolver        $folderResolver,
+        private FolderResolver $folderResolver,
         private MessageContentFactory $messageContentFactory = new MessageContentFactory(),
     ) {
     }
@@ -49,6 +53,7 @@ final readonly class ImapMailboxReader implements MailboxReader
             $inbox = $this->folderResolver->resolve($mailbox, MailboxRole::Inbox);
             $status = $this->statusInts($inbox->status());
 
+            /** @var MessageQueryInterface $query */
             $query = $inbox->messages();
             $query->uid($sinceUid + 1, INF);
             $query->oldest();
@@ -83,6 +88,7 @@ final readonly class ImapMailboxReader implements MailboxReader
         return $this->withMailbox(function (ExamineOnlyMailbox $mailbox) use ($uid, $maxChars): MessageContent {
             $inbox = $this->folderResolver->resolve($mailbox, MailboxRole::Inbox);
 
+            /** @var MessageQueryInterface $query */
             $query = $inbox->messages();
             $query->withHeaders();
             $query->withSize();
@@ -106,7 +112,7 @@ final readonly class ImapMailboxReader implements MailboxReader
             $sent = $this->folderResolver->resolve($mailbox, MailboxRole::Sent);
             $needle = trim($messageId, " \t<>");
 
-            $message = $this->searchReply($sent, $needle);
+            $message = $this->searchByInReplyToOrReferences($sent, $needle);
             if ($message === null) {
                 return ReplyLookupResult::notFound();
             }
@@ -119,7 +125,86 @@ final readonly class ImapMailboxReader implements MailboxReader
         });
     }
 
-    private function searchReply(FolderInterface $sent, string $needle): ?Message
+    public function getReplySource(int $uid): ReplySource
+    {
+        return $this->withMailbox(function (ExamineOnlyMailbox $mailbox) use ($uid): ReplySource {
+            $inbox = $this->folderResolver->resolve($mailbox, MailboxRole::Inbox);
+
+            /** @var MessageQueryInterface $query */
+            $query = $inbox->messages();
+            $query->withHeaders();
+            $query->withBodyStructure();
+            $query->leaveUnread();
+            $message = $query->find($uid);
+
+            if (!$message instanceof Message) {
+                throw new MailboxError(sprintf('Message UID %d not found in INBOX', $uid));
+            }
+
+            $message->bodyStructure(fetch: true);
+            $content = $this->messageContentFactory->contentFromMessage($message, $uid, 4000);
+
+            $replyTo = $message->replyTo();
+            $from = $message->from();
+            $recipientAddress = $replyTo ?? $from;
+            if ($recipientAddress === null || trim($recipientAddress->email()) === '') {
+                throw new MailboxError(sprintf('Message UID %d has no Reply-To/From address', $uid));
+            }
+
+            $authorName = '';
+            if ($from !== null) {
+                $authorName = trim($from->name()) !== '' ? $from->name() : $from->email();
+            }
+
+            $referencesHeader = $message->header('References');
+            $references = $referencesHeader !== null
+                ? trim((string) ($referencesHeader->getRawValue() !== '' ? $referencesHeader->getRawValue() : $referencesHeader->getValue()))
+                : '';
+
+            return new ReplySource(
+                uid: $uid,
+                messageId: trim((string) ($message->messageId() ?? '')),
+                subject: TextSanitizer::sanitize((string) ($message->subject() ?? '')),
+                references: $references,
+                recipient: new Recipient(
+                    email: $recipientAddress->email(),
+                    name: $recipientAddress->name(),
+                ),
+                quoteAuthorName: $authorName,
+                quoteDate: $message->date()?->format('d.m.Y H:i') ?? '',
+                quoteBody: $content->text,
+            );
+        });
+    }
+
+    public function findDraftByInReplyTo(string $messageId): ?SavedDraftInfo
+    {
+        return $this->withMailbox(function (ExamineOnlyMailbox $mailbox) use ($messageId): ?SavedDraftInfo {
+            $drafts = $this->folderResolver->resolve($mailbox, MailboxRole::Drafts);
+            $needle = trim($messageId, " \t<>");
+            $message = $this->searchDraftByInReplyTo($drafts, $needle);
+            if (!$message instanceof Message) {
+                return null;
+            }
+
+            $to = array_values($message->to());
+            $toFormatted = '';
+            if ($to !== []) {
+                $first = $to[0];
+                $toFormatted = trim($first->name()) !== ''
+                    ? sprintf('%s <%s>', $first->name(), $first->email())
+                    : $first->email();
+            }
+
+            return new SavedDraftInfo(
+                folder: $drafts->name(),
+                subject: (string) ($message->subject() ?? ''),
+                to: $toFormatted,
+            );
+        });
+    }
+
+    private function searchByInReplyToOrReferences(FolderInterface $folder, string $needle): ?Message
     {
         $variants = array_values(array_unique([
             $needle,
@@ -127,7 +212,8 @@ final readonly class ImapMailboxReader implements MailboxReader
         ]));
 
         foreach ($variants as $variant) {
-            $query = $sent->messages();
+            /** @var MessageQueryInterface $query */
+            $query = $folder->messages();
             $query->where(static function (ImapQueryBuilder $builder) use ($variant): void {
                 $builder->header('In-Reply-To', $variant);
                 $builder->orWhere(static function (ImapQueryBuilder $inner) use ($variant): void {
@@ -148,8 +234,33 @@ final readonly class ImapMailboxReader implements MailboxReader
         return null;
     }
 
+    private function searchDraftByInReplyTo(FolderInterface $drafts, string $needle): ?Message
+    {
+        $variants = array_values(array_unique([
+            $needle,
+            '<'.$needle.'>',
+        ]));
+
+        foreach ($variants as $variant) {
+            /** @var MessageQueryInterface $query */
+            $query = $drafts->messages();
+            $query->header('In-Reply-To', $variant);
+            $query->withHeaders();
+            $query->newest();
+            $query->limit(1);
+            $query->leaveUnread();
+            $found = $query->get()->first();
+
+            if ($found instanceof Message) {
+                return $found;
+            }
+        }
+
+        return null;
+    }
+
     /**
-     * @param array $status
+     * @param array<mixed> $status
      *
      * @return array{uidvalidity: int, uidnext: int, messages: int}
      */

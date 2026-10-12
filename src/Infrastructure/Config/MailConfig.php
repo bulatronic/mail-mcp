@@ -18,6 +18,7 @@ final readonly class MailConfig
         public int $timeoutSeconds,
         public ?string $sentFolder,
         public ?string $draftsFolder,
+        public ?string $fromName = null,
     ) {
     }
 
@@ -29,6 +30,7 @@ final readonly class MailConfig
         $portRaw = self::envString('MAIL_IMAP_PORT', '993');
         $sent = self::envString('MAIL_SENT_FOLDER');
         $drafts = self::envString('MAIL_DRAFTS_FOLDER');
+        $fromName = self::envString('MAIL_FROM_NAME');
 
         $port = ctype_digit($portRaw) ? (int) $portRaw : 993;
 
@@ -40,6 +42,7 @@ final readonly class MailConfig
             timeoutSeconds: 15,
             sentFolder: $sent !== '' ? $sent : null,
             draftsFolder: $drafts !== '' ? $drafts : null,
+            fromName: $fromName !== '' ? $fromName : null,
         );
     }
 
