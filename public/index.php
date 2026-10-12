@@ -5,6 +5,7 @@ declare(strict_types=1);
 require dirname(__DIR__).'/vendor/autoload.php';
 
 use Mcp\Capability\Registry\Container;
+use Mcp\Capability\Registry\ReferenceHandler;
 use Mcp\Server;
 use Mcp\Server\Session\FileSessionStore;
 use Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
@@ -17,6 +18,9 @@ use MailMcp\Infrastructure\Imap\ImapConnectionFactory;
 use MailMcp\Infrastructure\Imap\ImapDraftWriter;
 use MailMcp\Infrastructure\Imap\ImapMailboxReader;
 use MailMcp\Infrastructure\Mime\DraftMimeBuilder;
+use MailMcp\Mcp\Audit\StdoutJsonAuditLogger;
+use MailMcp\Mcp\GuardedReferenceHandler;
+use MailMcp\Mcp\RateLimit\FileRateLimiter;
 use MailMcp\Ports\DraftWriter;
 use MailMcp\Ports\MailboxReader;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -74,9 +78,16 @@ $container->set(MailboxReader::class, $mailboxReader);
 $container->set(DraftWriter::class, $draftWriter);
 $container->set(SaveDraft::class, $saveDraft);
 
+$referenceHandler = new GuardedReferenceHandler(
+    new ReferenceHandler($container),
+    new FileRateLimiter($sessionDir.'/rate-limit.json', maxCalls: 60, windowSeconds: 60),
+    new StdoutJsonAuditLogger(),
+);
+
 $server = Server::builder()
     ->setServerInfo('mail-mcp', '0.1.0')
     ->setContainer($container)
+    ->setReferenceHandler($referenceHandler)
     ->setDiscovery(dirname(__DIR__), ['src'], ['vendor', 'tests'])
     ->setSession(new FileSessionStore($sessionDir))
     ->build();
