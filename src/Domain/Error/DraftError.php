@@ -6,6 +6,4 @@ namespace MailMcp\Domain\Error;
 
 use RuntimeException;
 
-final class DraftError extends RuntimeException
-{
-}
+final class DraftError extends RuntimeException {}

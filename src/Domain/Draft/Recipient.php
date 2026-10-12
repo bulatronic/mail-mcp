@@ -9,8 +9,7 @@ final readonly class Recipient
     public function __construct(
         public string $email,
         public string $name = '',
-    ) {
-    }
+    ) {}
 
     public function format(): string
     {

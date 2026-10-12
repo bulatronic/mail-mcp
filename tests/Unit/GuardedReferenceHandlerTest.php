@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace MailMcp\Tests\Unit;
 
-use Mcp\Capability\Registry\ElementReference;
+use MailMcp\Domain\Error\DraftError;
+use MailMcp\Mcp\Audit\StdoutJsonAuditLogger;
+use MailMcp\Mcp\GuardedReferenceHandler;
+use MailMcp\Mcp\RateLimit\FileRateLimiter;
 use Mcp\Capability\Registry\ReferenceHandlerInterface;
 use Mcp\Capability\Registry\ToolReference;
 use Mcp\Exception\RegistryException;
 use Mcp\Exception\ToolCallException;
 use Mcp\Schema\Tool;
-use MailMcp\Domain\Error\DraftError;
-use MailMcp\Mcp\Audit\StdoutJsonAuditLogger;
-use MailMcp\Mcp\GuardedReferenceHandler;
-use MailMcp\Mcp\RateLimit\FileRateLimiter;
 use PHPUnit\Framework\TestCase;
 
 final class GuardedReferenceHandlerTest extends TestCase
@@ -24,7 +23,7 @@ final class GuardedReferenceHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->ratePath = sys_get_temp_dir().'/mail-mcp-guard-rate-'.uniqid('', true).'.json';
+        $this->ratePath = sys_get_temp_dir() . '/mail-mcp-guard-rate-' . uniqid('', true) . '.json';
         $stream = fopen('php://memory', 'r+');
         self::assertNotFalse($stream);
         $this->auditStream = $stream;

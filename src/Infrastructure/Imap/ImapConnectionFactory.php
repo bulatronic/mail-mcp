@@ -10,8 +10,7 @@ final readonly class ImapConnectionFactory
 {
     public function __construct(
         private MailConfig $config,
-    ) {
-    }
+    ) {}
 
     public function create(): ExamineOnlyMailbox
     {

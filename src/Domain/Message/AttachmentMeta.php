@@ -10,6 +10,5 @@ final readonly class AttachmentMeta
         public string $filename,
         public string $mime,
         public int $size,
-    ) {
-    }
+    ) {}
 }

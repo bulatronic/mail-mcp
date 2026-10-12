@@ -18,6 +18,5 @@ final readonly class MessageSummary
         public int $size,
         public bool $hasAttachments,
         public bool $isAutomated,
-    ) {
-    }
+    ) {}
 }

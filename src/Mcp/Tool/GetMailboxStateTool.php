@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace MailMcp\Mcp\Tool;
 
-use Mcp\Capability\Attribute\McpTool;
 use MailMcp\Application\UseCase\GetMailboxState;
+use Mcp\Capability\Attribute\McpTool;
 
 final readonly class GetMailboxStateTool
 {
     public function __construct(
         private GetMailboxState $useCase,
-    ) {
-    }
+    ) {}
 
     /**
      * Return INBOX UIDVALIDITY, last UID and total message count as a sync checkpoint.

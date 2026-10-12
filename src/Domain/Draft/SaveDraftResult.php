@@ -11,8 +11,7 @@ final readonly class SaveDraftResult
         public string $folder,
         public string $subject,
         public string $to,
-    ) {
-    }
+    ) {}
 
     public static function fromExisting(SavedDraftInfo $info): self
     {

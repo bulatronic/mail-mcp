@@ -12,8 +12,7 @@ final readonly class FindReply
 {
     public function __construct(
         private MailboxReader $mailboxReader,
-    ) {
-    }
+    ) {}
 
     public function execute(string $messageId): ReplyLookupResult
     {

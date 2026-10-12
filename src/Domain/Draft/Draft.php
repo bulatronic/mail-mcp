@@ -14,6 +14,5 @@ final readonly class Draft
         public string $inReplyTo,
         public string $references,
         public string $bodyText,
-    ) {
-    }
+    ) {}
 }

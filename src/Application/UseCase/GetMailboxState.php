@@ -11,8 +11,7 @@ final readonly class GetMailboxState
 {
     public function __construct(
         private MailboxReader $mailboxReader,
-    ) {
-    }
+    ) {}
 
     public function execute(): MailboxState
     {

@@ -17,7 +17,7 @@ use SplFileInfo;
  */
 final class ToolCatalogSnapshotTest extends TestCase
 {
-    private const EXPECTED_TOOLS = [
+    private const array EXPECTED_TOOLS = [
         'find_reply',
         'get_mailbox_state',
         'list_new_messages',
@@ -42,7 +42,7 @@ final class ToolCatalogSnapshotTest extends TestCase
      */
     private function discoverToolNames(): array
     {
-        $dir = dirname(__DIR__, 2).'/src/Mcp/Tool';
+        $dir = dirname(__DIR__, 2) . '/src/Mcp/Tool';
         self::assertDirectoryExists($dir);
 
         $names = [];
@@ -82,7 +82,7 @@ final class ToolCatalogSnapshotTest extends TestCase
             return null;
         }
 
-        return $nsMatch[1].'\\'.$classMatch[1];
+        return $nsMatch[1] . '\\' . $classMatch[1];
     }
 
     /**

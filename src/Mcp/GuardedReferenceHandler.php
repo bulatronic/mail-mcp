@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace MailMcp\Mcp;
 
+use MailMcp\Domain\Error\DraftError;
+use MailMcp\Domain\Error\MailboxError;
+use MailMcp\Mcp\Audit\StdoutJsonAuditLogger;
+use MailMcp\Mcp\RateLimit\FileRateLimiter;
 use Mcp\Capability\Registry\ElementReference;
 use Mcp\Capability\Registry\ReferenceHandlerInterface;
 use Mcp\Capability\Registry\ToolReference;
 use Mcp\Exception\RegistryException;
 use Mcp\Exception\ToolCallException;
-use MailMcp\Domain\Error\DraftError;
-use MailMcp\Domain\Error\MailboxError;
-use MailMcp\Mcp\Audit\StdoutJsonAuditLogger;
-use MailMcp\Mcp\RateLimit\FileRateLimiter;
 use Throwable;
 
 /**
@@ -24,8 +24,7 @@ final readonly class GuardedReferenceHandler implements ReferenceHandlerInterfac
         private ReferenceHandlerInterface $inner,
         private FileRateLimiter           $rateLimiter,
         private StdoutJsonAuditLogger     $auditLogger,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed> $arguments
@@ -101,7 +100,7 @@ final readonly class GuardedReferenceHandler implements ReferenceHandlerInterfac
         $message = preg_replace('/\bMAIL_APP_PASSWORD\b|\bpassword\b[=:]\s*\S+/i', '[redacted]', $message) ?? $message;
         $message = str_replace(["\r", "\n", "\t"], ' ', $message);
         if (strlen($message) > 300) {
-            $message = substr($message, 0, 297).'...';
+            $message = substr($message, 0, 297) . '...';
         }
 
         return $message;

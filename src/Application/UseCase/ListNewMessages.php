@@ -14,8 +14,7 @@ final class ListNewMessages
 
     public function __construct(
         private readonly MailboxReader $mailboxReader,
-    ) {
-    }
+    ) {}
 
     public function execute(int $sinceUid, int $limit = 50): MessageListResult
     {

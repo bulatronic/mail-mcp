@@ -2,15 +2,8 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__).'/vendor/autoload.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Mcp\Capability\Registry\Container;
-use Mcp\Capability\Registry\ReferenceHandler;
-use Mcp\Server;
-use Mcp\Server\Session\FileSessionStore;
-use Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
-use Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
-use Mcp\Server\Transport\StreamableHttpTransport;
 use MailMcp\Application\UseCase\SaveDraft;
 use MailMcp\Infrastructure\Config\MailConfig;
 use MailMcp\Infrastructure\Imap\FolderResolver;
@@ -23,6 +16,13 @@ use MailMcp\Mcp\GuardedReferenceHandler;
 use MailMcp\Mcp\RateLimit\FileRateLimiter;
 use MailMcp\Ports\DraftWriter;
 use MailMcp\Ports\MailboxReader;
+use Mcp\Capability\Registry\Container;
+use Mcp\Capability\Registry\ReferenceHandler;
+use Mcp\Server;
+use Mcp\Server\Session\FileSessionStore;
+use Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
+use Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
+use Mcp\Server\Transport\StreamableHttpTransport;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Psr\Http\Message\ResponseInterface;
@@ -80,7 +80,7 @@ $container->set(SaveDraft::class, $saveDraft);
 
 $referenceHandler = new GuardedReferenceHandler(
     new ReferenceHandler($container),
-    new FileRateLimiter($sessionDir.'/rate-limit.json', maxCalls: 60, windowSeconds: 60),
+    new FileRateLimiter($sessionDir . '/rate-limit.json', maxCalls: 60, windowSeconds: 60),
     new StdoutJsonAuditLogger(),
 );
 

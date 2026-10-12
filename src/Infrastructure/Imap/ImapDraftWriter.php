@@ -21,8 +21,7 @@ final class ImapDraftWriter implements DraftWriter
         private readonly ImapConnectionFactory $connectionFactory,
         private readonly FolderResolver $folderResolver,
         private readonly DraftMimeBuilder $mimeBuilder = new DraftMimeBuilder(),
-    ) {
-    }
+    ) {}
 
     public function appendDraft(Draft $draft): SavedDraftInfo
     {

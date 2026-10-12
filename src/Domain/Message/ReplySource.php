@@ -17,6 +17,5 @@ final readonly class ReplySource
         public string $quoteAuthorName,
         public string $quoteDate,
         public string $quoteBody,
-    ) {
-    }
+    ) {}
 }

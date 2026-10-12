@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace MailMcp\Mcp\Tool;
 
-use Mcp\Capability\Attribute\McpTool;
 use MailMcp\Application\UseCase\FindReply;
+use Mcp\Capability\Attribute\McpTool;
 
 final readonly class FindReplyTool
 {
     public function __construct(
         private FindReply $useCase,
-    ) {
-    }
+    ) {}
 
     /**
      * Look in Sent for a reply whose In-Reply-To or References contains message_id.

@@ -13,7 +13,7 @@ final class FileRateLimiterTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->path = sys_get_temp_dir().'/mail-mcp-rate-'.uniqid('', true).'.json';
+        $this->path = sys_get_temp_dir() . '/mail-mcp-rate-' . uniqid('', true) . '.json';
     }
 
     protected function tearDown(): void

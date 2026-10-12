@@ -10,8 +10,7 @@ final readonly class ReplyLookupResult
         public bool $replied,
         public ?int $sentUid,
         public ?string $sentDate,
-    ) {
-    }
+    ) {}
 
     public static function notFound(): self
     {

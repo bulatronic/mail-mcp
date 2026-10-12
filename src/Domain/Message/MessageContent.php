@@ -22,6 +22,5 @@ final readonly class MessageContent
         public bool $truncated,
         public array $attachments,
         public string $notice = self::UNTRUSTED_NOTICE,
-    ) {
-    }
+    ) {}
 }

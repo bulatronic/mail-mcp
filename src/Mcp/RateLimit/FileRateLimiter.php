@@ -49,7 +49,7 @@ final readonly class FileRateLimiter
             $timestamps = $this->readTimestamps($handle);
             $timestamps = array_values(array_filter(
                 $timestamps,
-                static fn (float $ts): bool => $ts >= $cutoff,
+                static fn(float $ts): bool => $ts >= $cutoff,
             ));
 
             if (count($timestamps) >= $this->maxCalls) {

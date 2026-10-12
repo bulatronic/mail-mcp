@@ -18,8 +18,7 @@ final readonly class MessageContentFactory
     public function __construct(
         private HtmlToText               $htmlToText = new HtmlToText(),
         private AutomatedMessageDetector $automatedDetector = new AutomatedMessageDetector(),
-    ) {
-    }
+    ) {}
 
     public function summaryFromMessage(MessageInterface $message, int $uid, ?int $size = null, ?bool $hasAttachments = null): MessageSummary
     {
@@ -113,7 +112,7 @@ final readonly class MessageContentFactory
     {
         if ($message instanceof Message) {
             return array_values(array_map(
-                static fn (BodyStructurePart $part): AttachmentMeta => new AttachmentMeta(
+                static fn(BodyStructurePart $part): AttachmentMeta => new AttachmentMeta(
                     filename: $part->filename() ?? 'unnamed',
                     mime: $part->contentType(),
                     size: $part->size() ?? 0,

@@ -62,6 +62,20 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools r
 docker compose exec mail-mcp vendor/bin/phpunit
 docker compose exec mail-mcp vendor/bin/phpstan analyse
 docker compose exec mail-mcp vendor/bin/deptrac analyse --config-file=deptrac.yaml --cache-file=/tmp/mail-mcp-deptrac.cache
+docker compose exec mail-mcp vendor/bin/php-cs-fixer check --diff --config=.php-cs-fixer.dist.php
+```
+
+Исправить стиль (нужны права хост-пользователя на bind-mount):
+
+```bash
+docker compose exec -u "$(id -u):$(id -g)" mail-mcp vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php
+```
+
+Альтернатива через Composer-скрипты `cs-check` / `cs-fix` (profile `tools`):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools run --rm composer cs-check
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools run --rm composer cs-fix
 ```
 
 Слои: `Mcp → Application → Ports ← Infrastructure`, Domain ни от кого не зависит (Deptrac).

@@ -100,7 +100,7 @@ final class SaveDraftTest extends TestCase
         $writer = $this->createMock(DraftWriter::class);
         $writer->expects(self::once())
             ->method('appendDraft')
-            ->with(self::callback(static fn (Draft $draft): bool => $draft->subject === 'Re: Already'))
+            ->with(self::callback(static fn(Draft $draft): bool => $draft->subject === 'Re: Already'))
             ->willReturn(new SavedDraftInfo('Drafts', 'Re: Already', 'alice@example.com'));
 
         $this->useCase($reader, $writer)->execute(10, 'Body');

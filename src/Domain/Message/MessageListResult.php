@@ -12,6 +12,5 @@ final readonly class MessageListResult
     public function __construct(
         public int $uidvalidity,
         public array $messages,
-    ) {
-    }
+    ) {}
 }

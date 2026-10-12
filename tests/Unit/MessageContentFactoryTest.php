@@ -94,7 +94,7 @@ final class MessageContentFactoryTest extends TestCase
 
     private function fixture(string $name): string
     {
-        $path = dirname(__DIR__).'/Fixtures/eml/'.$name;
+        $path = dirname(__DIR__) . '/Fixtures/eml/' . $name;
         $raw = file_get_contents($path);
         self::assertNotFalse($raw);
 

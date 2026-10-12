@@ -41,7 +41,7 @@ final class ForbiddenOperationsTest extends TestCase
 
     public function testSrcContainsNoForbiddenOperationsOrDependencies(): void
     {
-        $root = dirname(__DIR__, 2).'/src';
+        $root = dirname(__DIR__, 2) . '/src';
         self::assertDirectoryExists($root);
 
         $violations = [];
@@ -63,7 +63,7 @@ final class ForbiddenOperationsTest extends TestCase
         self::assertSame(
             [],
             $violations,
-            "Forbidden operations/dependencies found in src/:\n".implode("\n", $violations),
+            "Forbidden operations/dependencies found in src/:\n" . implode("\n", $violations),
         );
     }
 

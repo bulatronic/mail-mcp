@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace MailMcp\Mcp\Tool;
 
-use Mcp\Capability\Attribute\McpTool;
 use MailMcp\Application\UseCase\SaveDraft;
+use Mcp\Capability\Attribute\McpTool;
 
 final readonly class SaveDraftTool
 {
     public function __construct(
         private SaveDraft $useCase,
-    ) {
-    }
+    ) {}
 
     /**
      * Save a draft reply in Drafts for the given INBOX message UID.

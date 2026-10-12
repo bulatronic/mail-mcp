@@ -23,8 +23,7 @@ final class SaveDraft
         private readonly DraftWriter $draftWriter,
         private readonly string $fromEmail,
         private readonly ?string $fromName,
-    ) {
-    }
+    ) {}
 
     public function execute(int $replyToUid, string $body): SaveDraftResult
     {
@@ -57,7 +56,7 @@ final class SaveDraft
         $references = trim($source->references);
         $references = $references === ''
             ? $messageId
-            : $references.' '.$messageId;
+            : $references . ' ' . $messageId;
 
         $subject = ReplySubject::fromOriginal($source->subject);
         $draft = new Draft(
@@ -100,7 +99,7 @@ final class SaveDraft
         }
 
         if ($id[0] !== '<') {
-            $id = '<'.$id;
+            $id = '<' . $id;
         }
         if (!str_ends_with($id, '>')) {
             $id .= '>';

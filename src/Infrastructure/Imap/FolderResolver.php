@@ -14,8 +14,7 @@ final readonly class FolderResolver
 {
     public function __construct(
         private MailConfig $config,
-    ) {
-    }
+    ) {}
 
     public function resolve(MailboxInterface $mailbox, MailboxRole $role): FolderInterface
     {

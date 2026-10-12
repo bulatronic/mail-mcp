@@ -48,6 +48,6 @@ final class StdoutJsonAuditLogger
             return;
         }
 
-        fwrite($this->stream, $line."\n");
+        fwrite($this->stream, $line . "\n");
     }
 }

@@ -30,8 +30,7 @@ final readonly class ImapMailboxReader implements MailboxReader
         private ImapConnectionFactory $connectionFactory,
         private FolderResolver $folderResolver,
         private MessageContentFactory $messageContentFactory = new MessageContentFactory(),
-    ) {
-    }
+    ) {}
 
     public function getMailboxState(): MailboxState
     {
@@ -208,7 +207,7 @@ final readonly class ImapMailboxReader implements MailboxReader
     {
         $variants = array_values(array_unique([
             $needle,
-            '<'.$needle.'>',
+            '<' . $needle . '>',
         ]));
 
         foreach ($variants as $variant) {
@@ -238,7 +237,7 @@ final readonly class ImapMailboxReader implements MailboxReader
     {
         $variants = array_values(array_unique([
             $needle,
-            '<'.$needle.'>',
+            '<' . $needle . '>',
         ]));
 
         foreach ($variants as $variant) {

@@ -12,8 +12,7 @@ final readonly class ReadMessage
 {
     public function __construct(
         private MailboxReader $mailboxReader,
-    ) {
-    }
+    ) {}
 
     public function execute(int $uid, int $maxChars = 6000): MessageContent
     {

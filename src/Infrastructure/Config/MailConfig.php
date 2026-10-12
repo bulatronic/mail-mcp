@@ -19,8 +19,7 @@ final readonly class MailConfig
         public ?string $sentFolder,
         public ?string $draftsFolder,
         public ?string $fromName = null,
-    ) {
-    }
+    ) {}
 
     public static function fromEnvironment(): self
     {

@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace MailMcp\Mcp\Tool;
 
-use Mcp\Capability\Attribute\McpTool;
 use MailMcp\Application\UseCase\ListNewMessages;
 use MailMcp\Domain\Message\MessageSummary;
+use Mcp\Capability\Attribute\McpTool;
 
 final readonly class ListNewMessagesTool
 {
     public function __construct(
         private ListNewMessages $useCase,
-    ) {
-    }
+    ) {}
 
     /**
      * List INBOX messages with UID greater than since_uid (headers only, ascending).

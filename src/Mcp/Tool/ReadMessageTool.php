@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace MailMcp\Mcp\Tool;
 
-use Mcp\Capability\Attribute\McpTool;
 use MailMcp\Application\UseCase\ReadMessage;
 use MailMcp\Domain\Message\AttachmentMeta;
+use Mcp\Capability\Attribute\McpTool;
 
 final readonly class ReadMessageTool
 {
     public function __construct(
         private ReadMessage $useCase,
-    ) {
-    }
+    ) {}
 
     /**
      * Read one INBOX message body as safe plain text; attachment metadata only.

@@ -10,6 +10,5 @@ final readonly class SavedDraftInfo
         public string $folder,
         public string $subject,
         public string $to,
-    ) {
-    }
+    ) {}
 }

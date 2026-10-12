@@ -10,6 +10,5 @@ final readonly class MailboxState
         public int $uidvalidity,
         public int $lastUid,
         public int $totalMessages,
-    ) {
-    }
+    ) {}
 }

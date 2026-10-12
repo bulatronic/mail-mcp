@@ -13,6 +13,6 @@ final class ReplySubject
             return $subject;
         }
 
-        return 'Re: '.$subject;
+        return 'Re: ' . $subject;
     }
 }
