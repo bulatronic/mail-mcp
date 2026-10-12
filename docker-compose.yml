@@ -1,0 +1,30 @@
+services:
+  mail-mcp:
+    build:
+      context: .
+      target: runtime
+    user: "10001:10001"
+    expose:
+      - "8080"
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+      - /var/mcp-sessions:mode=1777
+      - /config:mode=1777
+      - /data:mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    env_file:
+      - .env
+    environment:
+      MAIL_IMAP_HOST: ${MAIL_IMAP_HOST:-imap.mail.ru}
+      MAIL_IMAP_PORT: ${MAIL_IMAP_PORT:-993}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_APP_PASSWORD: ${MAIL_APP_PASSWORD}
+      TZ: ${TZ:-UTC}
+      MCP_SESSION_DIR: /var/mcp-sessions
+      SERVER_NAME: ":8080"
+      XDG_CONFIG_HOME: /config
+      XDG_DATA_HOME: /data

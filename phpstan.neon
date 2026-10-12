@@ -1,0 +1,8 @@
+parameters:
+    level: max
+    tmpDir: /tmp/mail-mcp-phpstan
+    paths:
+        - src
+        - public
+    excludePaths:
+        - vendor
