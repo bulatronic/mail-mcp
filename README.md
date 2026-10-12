@@ -54,7 +54,13 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools run --rm composer install
 ```
 
-Сервис слушает `http://127.0.0.1:8080/mcp`.
+Сервис слушает `http://127.0.0.1:8080/mcp` (контейнер `mail-mcp`, образ `mail-mcp:local`).
+
+### Остановка
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+```
 
 ### Проверки
 

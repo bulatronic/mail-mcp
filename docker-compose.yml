@@ -1,5 +1,7 @@
 services:
   mail-mcp:
+    container_name: mail-mcp
+    image: mail-mcp:local
     build:
       context: .
       target: runtime
