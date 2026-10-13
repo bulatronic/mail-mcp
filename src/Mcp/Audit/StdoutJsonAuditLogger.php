@@ -19,10 +19,11 @@ final class StdoutJsonAuditLogger
     public function __construct(mixed $stream = null)
     {
         if ($stream === null) {
-            $stream = \STDOUT;
+            // STDOUT is CLI-only; php://stdout works under FrankenPHP web SAPI too.
+            $stream = fopen('php://stdout', 'wb');
         }
         if (!is_resource($stream)) {
-            throw new \InvalidArgumentException('Audit logger stream must be a resource');
+            throw new \InvalidArgumentException('Audit logger stream must be a writable resource');
         }
 
         $this->stream = $stream;

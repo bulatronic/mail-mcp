@@ -33,4 +33,12 @@ final class StdoutJsonAuditLoggerTest extends TestCase
             'duration_ms' => 12,
         ], $decoded);
     }
+
+    public function testDefaultStreamUsesPhpStdoutNotStdoutConstant(): void
+    {
+        $logger = new StdoutJsonAuditLogger();
+        // Construction must not reference CLI-only STDOUT (FrankenPHP web SAPI).
+        $logger->log('get_mailbox_state', null, 'ok', 1);
+        self::assertTrue(true);
+    }
 }

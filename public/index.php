@@ -24,6 +24,7 @@ use Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
 use Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
 use Mcp\Server\Transport\StreamableHttpTransport;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\Response;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Psr\Http\Message\ResponseInterface;
 
@@ -37,6 +38,11 @@ use Psr\Http\Message\ResponseInterface;
  * process here, so InMemorySessionStore cannot share that state. A dedicated
  * StatelessHttpTransport / buildStateless() path is modern-era-only and would
  * break Inspector. FileSessionStore under MCP_SESSION_DIR is the fit.
+ *
+ * Classic FrankenPHP `php_server` ignores a returned PSR-7 Response (body stays
+ * empty, Caddy defaults Content-Type to text/html). Emit status/headers/body
+ * via the SAPI instead. (Worker mode + frankenphp_handle_request would do the
+ * same conversion at the edge.)
  */
 
 $psr17Factory = new Psr17Factory();
@@ -49,10 +55,7 @@ $requestCreator = new ServerRequestCreator(
 $request = $requestCreator->fromGlobals();
 
 if ($request->getUri()->getPath() !== '/mcp') {
-    http_response_code(404);
-    header('Content-Type: text/plain; charset=utf-8');
-    echo 'Not Found';
-    exit(1);
+    emitResponse(new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found'));
 }
 
 $sessionDir = getenv('MCP_SESSION_DIR') ?: '/var/mcp-sessions';
