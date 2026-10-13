@@ -117,10 +117,11 @@ final class HtmlToText
         if (preg_match('/opacity\s*:\s*0(?:\.0+)?\s*(?:;|$)/', $style) === 1) {
             return true;
         }
-        if (preg_match('/font-size\s*:\s*0(?:px|em|rem|%)?\b/', $style) === 1) {
+        // Do not use \b after 0 — it matches between "0" and "." (e.g. 0.9em).
+        if (preg_match('/font-size\s*:\s*0(?:\.0+)?(?:px|em|rem|pt|%)?\s*(?:;|!|$)/', $style) === 1) {
             return true;
         }
-        if (preg_match('/max-height\s*:\s*0(?:px|em|rem|%)?\b/', $style) === 1) {
+        if (preg_match('/max-height\s*:\s*0(?:\.0+)?(?:px|em|rem|pt|%)?\s*(?:;|!|$)/', $style) === 1) {
             return true;
         }
 

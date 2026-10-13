@@ -52,4 +52,22 @@ final class TextSanitizerTest extends TestCase
 
         self::assertSame("ab\n\nc", TextSanitizer::sanitize($raw));
     }
+
+    public function testRemovesVariationSelectors(): void
+    {
+        $raw = "A\u{FE0F}B\u{FE00}C\u{E0100}D\u{E01EF}E";
+
+        $clean = TextSanitizer::sanitize($raw);
+
+        self::assertSame('ABCDE', $clean);
+        self::assertStringNotContainsString("\u{FE0F}", $clean);
+        self::assertStringNotContainsString("\u{E0100}", $clean);
+    }
+
+    public function testPreservesLettersDigitsAndPunctuation(): void
+    {
+        $raw = 'Привет, World! 123 — «тест».';
+
+        self::assertSame($raw, TextSanitizer::sanitize($raw));
+    }
 }
