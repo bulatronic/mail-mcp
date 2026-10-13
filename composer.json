@@ -2,7 +2,7 @@
     "name": "mail-mcp/mail-mcp",
     "description": "MCP server for reading Mail.ru mailbox and preparing draft replies",
     "type": "project",
-    "license": "proprietary",
+    "license": "Unlicense",
     "require": {
         "php": "^8.5",
         "ext-dom": "*",

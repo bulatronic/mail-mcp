@@ -6,6 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com/)
 [![Symfony Mime](https://img.shields.io/badge/Symfony%20Mime-7%2F8-000000?style=flat&logo=symfony)](https://symfony.com/doc/current/components/mime.html)
 [![PHPUnit](https://img.shields.io/badge/PHPUnit-11-3C9A40?style=flat)](https://phpunit.de/)
+[![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg?style=flat)](https://unlicense.org/)
 
 Небольшой MCP-сервер на PHP 8.5: читает рабочий ящик Mail.ru по IMAP и готовит **черновики** ответов.
 
@@ -159,3 +160,7 @@ http://mail-mcp:8080/mcp
 Используется **`FileSessionStore`** в `MCP_SESSION_DIR`.
 
 SDK умеет обслуживать modern-era (SEP-2575) запросы без сессии, но клиенты handshake-эры (в т.ч. MCP Inspector) шлют `Mcp-Session-Id`. PHP обрабатывает запросы в отдельных процессах, поэтому `InMemorySessionStore` не подходит.
+
+## Лицензия
+
+[Unlicense](https://unlicense.org/) — программное обеспечение в общественном достоянии: копируйте, меняйте, продавайте, используйте как угодно. Подробности в файле `LICENSE`.
