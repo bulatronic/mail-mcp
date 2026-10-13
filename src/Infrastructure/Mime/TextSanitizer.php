@@ -8,7 +8,21 @@ final class TextSanitizer
 {
     public static function sanitize(string $text): string
     {
-        $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $text) ?? $text;
+        // preg_replace(/u) returns null on invalid UTF-8 — scrub first.
+        $text = mb_scrub($text, 'UTF-8');
+
+        // C0 controls (except TAB/LF/CR) and DEL.
+        $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $text) ?? '';
+
+        // Invisible / bidi / tag Unicode used for prompt-injection hiding:
+        // U+200B–U+200F, U+202A–U+202E, U+2060–U+206F (incl. U+2066–U+2069),
+        // U+FEFF, and Tags block U+E0000–U+E007F.
+        $text = preg_replace(
+            '/[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{206F}\x{FEFF}\x{E0000}-\x{E007F}]/u',
+            '',
+            $text,
+        ) ?? '';
+
         $text = str_replace("\r\n", "\n", $text);
         $text = str_replace("\r", "\n", $text);
         $text = preg_replace("/\n{3,}/", "\n\n", $text) ?? $text;
