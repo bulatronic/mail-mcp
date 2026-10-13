@@ -9,7 +9,8 @@ use MailMcp\Application\Draft\ReplySubject;
 use MailMcp\Domain\Draft\Draft;
 use MailMcp\Domain\Draft\SaveDraftResult;
 use MailMcp\Domain\Error\DraftError;
-use MailMcp\Domain\Error\MailboxError;
+use MailMcp\Domain\Error\MessageNotFoundError;
+use MailMcp\Domain\Message\ReplySource;
 use MailMcp\Ports\DraftWriter;
 use MailMcp\Ports\MailboxReader;
 
@@ -35,7 +36,7 @@ final class SaveDraft
 
         try {
             $source = $this->mailboxReader->getReplySource($replyToUid);
-        } catch (MailboxError $e) {
+        } catch (MessageNotFoundError $e) {
             throw new DraftError(sprintf('Source message UID %d not found', $replyToUid), 0, $e);
         }
 
@@ -47,9 +48,11 @@ final class SaveDraft
             throw new DraftError('Recipient address is invalid');
         }
 
+        $replyToDiffers = $this->replyToDiffersFromSender($source);
+
         $existing = $this->mailboxReader->findDraftByInReplyTo($source->messageId);
         if ($existing !== null) {
-            return SaveDraftResult::fromExisting($existing);
+            return SaveDraftResult::fromExisting($existing, $replyToDiffers);
         }
 
         $messageId = $this->bracketId($source->messageId);
@@ -69,7 +72,33 @@ final class SaveDraft
             bodyText: ReplyQuote::append($body, $source),
         );
 
-        return SaveDraftResult::created($this->draftWriter->appendDraft($draft));
+        return SaveDraftResult::created($this->draftWriter->appendDraft($draft), $replyToDiffers);
+    }
+
+    private function replyToDiffersFromSender(ReplySource $source): bool
+    {
+        $replyTo = trim((string) $source->replyToEmail);
+        if ($replyTo === '') {
+            return false;
+        }
+
+        $replyDomain = $this->emailDomain($replyTo);
+        $fromDomain = $this->emailDomain($source->fromEmail);
+        if ($replyDomain === '' || $fromDomain === '') {
+            return false;
+        }
+
+        return strcasecmp($replyDomain, $fromDomain) !== 0;
+    }
+
+    private function emailDomain(string $email): string
+    {
+        $at = strrpos($email, '@');
+        if ($at === false) {
+            return '';
+        }
+
+        return substr($email, $at + 1);
     }
 
     private function assertBody(string $body): string

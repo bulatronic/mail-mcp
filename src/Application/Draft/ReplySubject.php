@@ -9,7 +9,8 @@ final class ReplySubject
     public static function fromOriginal(string $subject): string
     {
         $subject = trim($subject);
-        if ($subject !== '' && preg_match('/^Re:\s/i', $subject) === 1) {
+        // Keep existing reply markers: "Re:", "RE:", "Re[2]:", etc.
+        if ($subject !== '' && preg_match('/^Re(?:\[\d+\])?:\s/i', $subject) === 1) {
             return $subject;
         }
 

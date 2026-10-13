@@ -14,6 +14,8 @@ final readonly class ReplySource
         public string $subject,
         public string $references,
         public Recipient $recipient,
+        public string $fromEmail,
+        public ?string $replyToEmail,
         public string $quoteAuthorName,
         public string $quoteDate,
         public string $quoteBody,

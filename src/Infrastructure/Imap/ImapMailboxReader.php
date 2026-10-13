@@ -13,6 +13,7 @@ use DirectoryTree\ImapEngine\MessageQueryInterface;
 use MailMcp\Domain\Draft\Recipient;
 use MailMcp\Domain\Draft\SavedDraftInfo;
 use MailMcp\Domain\Error\MailboxError;
+use MailMcp\Domain\Error\MessageNotFoundError;
 use MailMcp\Domain\Message\MailboxRole;
 use MailMcp\Domain\Message\MailboxState;
 use MailMcp\Domain\Message\MessageContent;
@@ -96,7 +97,7 @@ final readonly class ImapMailboxReader implements MailboxReader
             $message = $query->find($uid);
 
             if (!$message instanceof Message) {
-                throw new MailboxError(sprintf('Message UID %d not found in INBOX', $uid));
+                throw new MessageNotFoundError(sprintf('Message UID %d not found in INBOX', $uid));
             }
 
             $message->bodyStructure(fetch: true);
@@ -137,7 +138,7 @@ final readonly class ImapMailboxReader implements MailboxReader
             $message = $query->find($uid);
 
             if (!$message instanceof Message) {
-                throw new MailboxError(sprintf('Message UID %d not found in INBOX', $uid));
+                throw new MessageNotFoundError(sprintf('Message UID %d not found in INBOX', $uid));
             }
 
             $message->bodyStructure(fetch: true);
@@ -145,7 +146,13 @@ final readonly class ImapMailboxReader implements MailboxReader
 
             $replyTo = $message->replyTo();
             $from = $message->from();
-            $recipientAddress = $replyTo ?? $from;
+            $fromEmail = $from !== null ? trim($from->email()) : '';
+            $replyToEmail = null;
+            if ($replyTo !== null && trim($replyTo->email()) !== '') {
+                $replyToEmail = trim($replyTo->email());
+            }
+
+            $recipientAddress = $replyToEmail !== null ? $replyTo : $from;
             if ($recipientAddress === null || trim($recipientAddress->email()) === '') {
                 throw new MailboxError(sprintf('Message UID %d has no Reply-To/From address', $uid));
             }
@@ -169,6 +176,8 @@ final readonly class ImapMailboxReader implements MailboxReader
                     email: $recipientAddress->email(),
                     name: $recipientAddress->name(),
                 ),
+                fromEmail: $fromEmail,
+                replyToEmail: $replyToEmail,
                 quoteAuthorName: $authorName,
                 quoteDate: $message->date()?->format('d.m.Y H:i') ?? '',
                 quoteBody: $content->text,

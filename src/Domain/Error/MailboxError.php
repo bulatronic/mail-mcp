@@ -6,4 +6,4 @@ namespace MailMcp\Domain\Error;
 
 use RuntimeException;
 
-final class MailboxError extends RuntimeException {}
+class MailboxError extends RuntimeException {}

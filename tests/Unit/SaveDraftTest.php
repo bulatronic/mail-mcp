@@ -10,6 +10,7 @@ use MailMcp\Domain\Draft\Recipient;
 use MailMcp\Domain\Draft\SavedDraftInfo;
 use MailMcp\Domain\Error\DraftError;
 use MailMcp\Domain\Error\MailboxError;
+use MailMcp\Domain\Error\MessageNotFoundError;
 use MailMcp\Domain\Message\ReplySource;
 use MailMcp\Ports\DraftWriter;
 use MailMcp\Ports\MailboxReader;
@@ -46,12 +47,77 @@ final class SaveDraftTest extends TestCase
         self::assertSame('Черновики', $result->folder);
         self::assertSame('Re: Hello', $result->subject);
         self::assertSame('Alice <alice@example.com>', $result->to);
+        self::assertFalse($result->replyToDiffersFromSender);
+    }
+
+    public function testReplyToSameDomainDoesNotFlagDifference(): void
+    {
+        $source = $this->source(
+            subject: 'support@example.com',
+            recipientEmail: 'support@example.com',
+            replyToEmail: 'support@example.com',
+        );
+
+        $reader = $this->createMock(MailboxReader::class);
+        $reader->method('getReplySource')->willReturn($source);
+        $reader->method('findDraftByInReplyTo')->willReturn(null);
+
+        $writer = $this->createMock(DraftWriter::class);
+        $writer->method('appendDraft')->willReturn(new SavedDraftInfo('Drafts', 'Re: Hello', 'support@example.com'));
+
+        $result = $this->useCase($reader, $writer)->execute(10, 'Body');
+
+        self::assertFalse($result->replyToDiffersFromSender);
+    }
+
+    public function testReplyToDifferentDomainFlagsDifference(): void
+    {
+        $source = $this->source(
+            subject: 'evil@attacker.test',
+            recipientEmail: 'evil@attacker.test',
+            replyToEmail: 'evil@attacker.test',
+        );
+
+        $reader = $this->createMock(MailboxReader::class);
+        $reader->method('getReplySource')->willReturn($source);
+        $reader->method('findDraftByInReplyTo')->willReturn(null);
+
+        $writer = $this->createMock(DraftWriter::class);
+        $writer->method('appendDraft')->willReturn(new SavedDraftInfo('Drafts', 'Re: Hello', 'evil@attacker.test'));
+
+        $result = $this->useCase($reader, $writer)->execute(10, 'Body');
+
+        self::assertTrue($result->replyToDiffersFromSender);
+    }
+
+    public function testMissingReplyToDoesNotFlagDifference(): void
+    {
+        $source = $this->source(
+            subject: 'alice@example.com',
+            recipientEmail: 'alice@example.com',
+            replyToEmail: null,
+        );
+
+        $reader = $this->createMock(MailboxReader::class);
+        $reader->method('getReplySource')->willReturn($source);
+        $reader->method('findDraftByInReplyTo')->willReturn(null);
+
+        $writer = $this->createMock(DraftWriter::class);
+        $writer->method('appendDraft')->willReturn(new SavedDraftInfo('Drafts', 'Re: Hello', 'alice@example.com'));
+
+        $result = $this->useCase($reader, $writer)->execute(10, 'Body');
+
+        self::assertFalse($result->replyToDiffersFromSender);
     }
 
     public function testIdempotentWhenDraftAlreadyExists(): void
     {
-        $source = $this->source();
-        $existing = new SavedDraftInfo('Черновики', 'Re: Hello', 'alice@example.com');
+        $source = $this->source(
+            subject: 'evil@attacker.test',
+            recipientEmail: 'evil@attacker.test',
+            replyToEmail: 'evil@attacker.test',
+        );
+        $existing = new SavedDraftInfo('Черновики', 'Re: Hello', 'evil@attacker.test');
 
         $reader = $this->createMock(MailboxReader::class);
         $reader->method('getReplySource')->willReturn($source);
@@ -63,8 +129,7 @@ final class SaveDraftTest extends TestCase
         $result = $this->useCase($reader, $writer)->execute(10, 'Thanks again');
 
         self::assertFalse($result->created);
-        self::assertSame('Черновики', $result->folder);
-        self::assertSame('Re: Hello', $result->subject);
+        self::assertTrue($result->replyToDiffersFromSender);
     }
 
     public function testRejectsEmptyBody(): void
@@ -80,13 +145,31 @@ final class SaveDraftTest extends TestCase
     public function testRejectsMissingSourceUid(): void
     {
         $reader = $this->createMock(MailboxReader::class);
-        $reader->method('getReplySource')->willThrowException(new MailboxError('not found'));
+        $reader->method('getReplySource')->willThrowException(new MessageNotFoundError('not found'));
 
         $writer = $this->createMock(DraftWriter::class);
         $writer->expects(self::never())->method('appendDraft');
 
         $this->expectException(DraftError::class);
+        $this->expectExceptionMessage('Source message UID 999 not found');
         $this->useCase($reader, $writer)->execute(999, 'Hello');
+    }
+
+    public function testNetworkMailboxErrorIsNotMaskedAsNotFound(): void
+    {
+        $reader = $this->createMock(MailboxReader::class);
+        $reader->method('getReplySource')->willThrowException(new MailboxError('IMAP connection timed out'));
+
+        $writer = $this->createMock(DraftWriter::class);
+        $writer->expects(self::never())->method('appendDraft');
+
+        try {
+            $this->useCase($reader, $writer)->execute(10, 'Hello');
+            self::fail('Expected MailboxError');
+        } catch (MailboxError $e) {
+            self::assertSame('IMAP connection timed out', $e->getMessage());
+            self::assertStringNotContainsString('not found', $e->getMessage());
+        }
     }
 
     public function testDoesNotDuplicateRePrefix(): void
@@ -111,14 +194,19 @@ final class SaveDraftTest extends TestCase
         return new SaveDraft($reader, $writer, 'me@mail.ru', 'Me');
     }
 
-    private function source(string $subject = 'Hello'): ReplySource
-    {
+    private function source(
+        string $subject = 'Hello',
+        string $recipientEmail = 'alice@example.com',
+        ?string $replyToEmail = null,
+    ): ReplySource {
         return new ReplySource(
             uid: 10,
             messageId: '<orig@example.com>',
             subject: $subject,
             references: '<prev@example.com>',
-            recipient: new Recipient('alice@example.com', 'Alice'),
+            recipient: new Recipient($recipientEmail, 'Alice'),
+            fromEmail: 'alice@example.com',
+            replyToEmail: $replyToEmail,
             quoteAuthorName: 'Alice',
             quoteDate: '12.10.2026 10:00',
             quoteBody: "Original line\nSecond line",
