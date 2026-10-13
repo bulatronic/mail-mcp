@@ -1,0 +1,71 @@
+# Pin GitHub Actions by major version for readability.
+# To pin by commit SHA (recommended for high-assurance CI), replace e.g.
+#   uses: actions/checkout@v4
+# with:
+#   uses: actions/checkout@<full-commit-sha> # v4.x.x
+# Resolve SHA via: gh api repos/actions/checkout/commits/v4 --jq .sha
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: PHP checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: dom, libxml, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=512M
+
+      - name: Deptrac
+        run: vendor/bin/deptrac analyse --config-file=deptrac.yaml --cache-file=/tmp/mail-mcp-deptrac.cache --no-progress
+
+      - name: PHP CS Fixer
+        run: vendor/bin/php-cs-fixer check --diff --config=.php-cs-fixer.dist.php
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build runtime image
+        run: docker build --target runtime -t mail-mcp:ci .
+        # Image is not pushed; build verifies Dockerfile only.
