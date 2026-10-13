@@ -5,7 +5,7 @@ FROM composer:2 AS builder
 
 WORKDIR /app
 
-COPY composer.json composer.lock* ./
+COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
     --no-interaction \
@@ -20,7 +20,7 @@ RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
 # ---- runtime ----
 # FrankenPHP keeps Streamable HTTP (MCP Inspector). Hardening aligned with project
 # docker rules (non-root uid 10001, no curl/git in runtime, multi-stage, no secrets).
-FROM dunglas/frankenphp:1-php8.4 AS runtime
+FROM dunglas/frankenphp:1-php8.5 AS runtime
 
 WORKDIR /app
 

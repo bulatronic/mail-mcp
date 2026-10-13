@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace MailMcp\Infrastructure\Imap;
 
 use DirectoryTree\ImapEngine\Enums\ImapFlag;
-use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
-use DirectoryTree\ImapEngine\Exceptions\ImapConnectionException;
 use MailMcp\Domain\Draft\Draft;
 use MailMcp\Domain\Draft\SavedDraftInfo;
 use MailMcp\Domain\Error\DraftError;
@@ -15,12 +13,12 @@ use MailMcp\Infrastructure\Mime\DraftMimeBuilder;
 use MailMcp\Ports\DraftWriter;
 use Throwable;
 
-final class ImapDraftWriter implements DraftWriter
+final readonly class ImapDraftWriter implements DraftWriter
 {
     public function __construct(
-        private readonly ImapConnectionFactory $connectionFactory,
-        private readonly FolderResolver $folderResolver,
-        private readonly DraftMimeBuilder $mimeBuilder = new DraftMimeBuilder(),
+        private ImapConnectionFactory $connectionFactory,
+        private FolderResolver        $folderResolver,
+        private DraftMimeBuilder      $mimeBuilder = new DraftMimeBuilder(),
     ) {}
 
     public function appendDraft(Draft $draft): SavedDraftInfo
@@ -44,8 +42,6 @@ final class ImapDraftWriter implements DraftWriter
             );
         } catch (DraftError $e) {
             throw $e;
-        } catch (ImapConnectionException|ImapCommandException $e) {
-            throw new DraftError('Failed to append draft', 0, $e);
         } catch (Throwable $e) {
             throw new DraftError('Failed to append draft', 0, $e);
         } finally {

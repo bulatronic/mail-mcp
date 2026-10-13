@@ -85,6 +85,8 @@ final class GuardedReferenceHandlerTest extends TestCase
         $line = $this->readAuditLine();
         self::assertSame('error', $line['status']);
         self::assertSame(7, $line['uid']);
+        self::assertSame(DraftError::class, $line['error_class']);
+        self::assertStringNotContainsString('body length', json_encode($line) ?: '');
     }
 
     /**

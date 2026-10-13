@@ -6,7 +6,7 @@ namespace MailMcp\Mcp\Audit;
 
 /**
  * Writes one JSON audit line per tool call to stdout.
- * Never logs passwords, subjects or message bodies.
+ * Never logs passwords, subjects, message bodies or exception messages.
  */
 final class StdoutJsonAuditLogger
 {
@@ -35,6 +35,7 @@ final class StdoutJsonAuditLogger
         string $status,
         int $durationMs,
         ?string $time = null,
+        ?string $errorClass = null,
     ): void {
         $payload = [
             'time' => $time ?? gmdate('c'),
@@ -43,6 +44,10 @@ final class StdoutJsonAuditLogger
             'status' => $status,
             'duration_ms' => $durationMs,
         ];
+
+        if ($status === 'error' && $errorClass !== null && $errorClass !== '') {
+            $payload['error_class'] = $errorClass;
+        }
 
         $line = json_encode($payload, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE);
         if ($line === false) {

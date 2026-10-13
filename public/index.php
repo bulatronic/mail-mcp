@@ -20,7 +20,6 @@ use Mcp\Capability\Registry\Container;
 use Mcp\Capability\Registry\ReferenceHandler;
 use Mcp\Server;
 use Mcp\Server\Session\FileSessionStore;
-use Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
 use Mcp\Server\Transport\Http\Middleware\DnsRebindingProtectionMiddleware;
 use Mcp\Server\Transport\StreamableHttpTransport;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -100,7 +99,6 @@ $server = Server::builder()
 $transport = new StreamableHttpTransport(
     $request,
     middleware: [
-        new CorsMiddleware(),
         new DnsRebindingProtectionMiddleware(
             allowedHosts: ['mail-mcp', 'localhost', '127.0.0.1'],
         ),

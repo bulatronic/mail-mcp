@@ -1,6 +1,26 @@
 # mail-mcp
 
-Небольшой MCP-сервер на PHP 8.4: читает рабочий ящик Mail.ru по IMAP и готовит **черновики** ответов. Отправка писем не поддерживается.
+[![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?style=flat&logo=php)](https://www.php.net/)
+[![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-0A7EA4?style=flat)](https://modelcontextprotocol.io/)
+[![FrankenPHP](https://img.shields.io/badge/FrankenPHP-Ready-000000?style=flat)](https://frankenphp.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com/)
+[![Symfony Mime](https://img.shields.io/badge/Symfony%20Mime-7%2F8-000000?style=flat&logo=symfony)](https://symfony.com/doc/current/components/mime.html)
+[![PHPUnit](https://img.shields.io/badge/PHPUnit-11-3C9A40?style=flat)](https://phpunit.de/)
+
+Небольшой MCP-сервер на PHP 8.5: читает рабочий ящик Mail.ru по IMAP и готовит **черновики** ответов.
+
+**Отправка писем не поддерживается — умышленно.** ИИ-агент не должен иметь возможности случайно навредить ящику: в коде и портах нет SMTP/`mail()`, удаления, перемещения, копирования, пересылки, EXPUNGE и смены флагов существующих писем. Единственная запись — IMAP APPEND черновика в Drafts. Отправить ответ можно только вручную из почтового клиента.
+
+## Стек
+
+| Технология                                 | Роль                                         |
+|--------------------------------------------|----------------------------------------------|
+| PHP 8.5 + FrankenPHP                       | Runtime и HTTP (Streamable MCP)              |
+| mcp/sdk                                    | MCP-сервер и инструменты                     |
+| directorytree/imapengine                   | Pure-PHP IMAP (EXAMINE / BODY.PEEK)          |
+| symfony/mime                               | Сборка MIME черновика (без Mailer/Transport) |
+| Docker Compose                             | Запуск и изоляция                            |
+| PHPUnit / PHPStan / Deptrac / PHP CS Fixer | Тесты, статический анализ, слои, стиль       |
 
 ## Что умеет
 
@@ -111,13 +131,16 @@ http://mail-mcp:8080/mcp
 
 ## Безопасность и эксплуатация
 
-- Только IMAP APPEND черновика (`\Draft`, `\Seen`) в Drafts; без SMTP и без изменения флагов существующих писем.
-- Чтение через EXAMINE / BODY.PEEK (`leaveUnread`).
-- Получатель черновика только из Reply-To/From исходного письма.
-- Аудит каждого вызова инструмента — JSON line в stdout: `time`, `tool`, `uid`, `status`, `duration_ms`.
+Ограничения ниже — продуктовое решение, а не недоделка: поверхность атаки агента намеренно узкая.
+
+- **Нет отправки:** SMTP, Symfony Mailer/Transport, PHPMailer и `mail()` отсутствуют в зависимостях и коде.
+- **Нет разрушительных IMAP-операций:** удаление, перемещение, копирование, пересылка, EXPUNGE, `STORE`/смена флагов существующих писем — запрещены портами и архитектурным тестом.
+- **Единственная запись:** IMAP APPEND черновика (`\Draft`, `\Seen`) только в Drafts.
+- **Чтение только read-only:** EXAMINE / BODY.PEEK (`leaveUnread`), письма не помечаются прочитанными.
+- Получатель черновика только из Reply-To/From исходного письма (не из аргументов агента).
+- Аудит каждого вызова инструмента — JSON line в stdout: `time`, `tool`, `uid`, `status`, `duration_ms` (+ `error_class` при ошибке); без паролей, тем и тел писем.
 - Лимит: **60 вызовов инструментов в минуту** (общий на процесс-группу, файл в `MCP_SESSION_DIR`).
 - Ошибки инструментов отдаются как MCP tool errors без секретов и стек-трейсов.
-- Архитектурный тест запрещает в `src/` операции delete/expunge/move/copy/setFlag/markSeen, STORE, smtp, Transport, PHPMailer, `mail()`.
 
 ## IMAP-библиотека
 

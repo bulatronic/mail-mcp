@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace MailMcp\Infrastructure\Imap;
 
 use DirectoryTree\ImapEngine\Connection\ImapQueryBuilder;
-use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
-use DirectoryTree\ImapEngine\Exceptions\ImapConnectionException;
 use DirectoryTree\ImapEngine\FolderInterface;
 use DirectoryTree\ImapEngine\Message;
 use DirectoryTree\ImapEngine\MessageQueryInterface;
@@ -311,8 +309,6 @@ final readonly class ImapMailboxReader implements MailboxReader
             return $callback($mailbox);
         } catch (MailboxError $e) {
             throw $e;
-        } catch (ImapConnectionException|ImapCommandException $e) {
-            throw new MailboxError('IMAP operation failed', 0, $e);
         } catch (Throwable $e) {
             throw new MailboxError('IMAP operation failed', 0, $e);
         } finally {

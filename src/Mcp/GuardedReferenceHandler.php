@@ -51,13 +51,13 @@ final readonly class GuardedReferenceHandler implements ReferenceHandlerInterfac
 
             return $result;
         } catch (ToolCallException $e) {
-            $this->auditLogger->log($tool, $uid, 'error', $this->elapsedMs($started));
+            $this->auditLogger->log($tool, $uid, 'error', $this->elapsedMs($started), errorClass: $e::class);
             throw new ToolCallException($this->publicMessage($e), 0, $e);
         } catch (DraftError|MailboxError|\InvalidArgumentException $e) {
-            $this->auditLogger->log($tool, $uid, 'error', $this->elapsedMs($started));
+            $this->auditLogger->log($tool, $uid, 'error', $this->elapsedMs($started), errorClass: $e::class);
             throw new ToolCallException($this->publicMessage($e), 0, $e);
         } catch (Throwable $e) {
-            $this->auditLogger->log($tool, $uid, 'error', $this->elapsedMs($started));
+            $this->auditLogger->log($tool, $uid, 'error', $this->elapsedMs($started), errorClass: $e::class);
             throw new ToolCallException('Internal error while executing tool', 0, $e);
         }
     }
