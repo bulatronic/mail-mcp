@@ -8,6 +8,7 @@
 [![Symfony Mime](https://img.shields.io/badge/Symfony%20Mime-7%2F8-000000?style=flat&logo=symfony)](https://symfony.com/doc/current/components/mime.html)
 [![PHPUnit](https://img.shields.io/badge/PHPUnit-11-3C9A40?style=flat)](https://phpunit.de/)
 [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg?style=flat)](https://unlicense.org/)
+[![M8ven Score](https://m8ven.ai/badge/mcp/bulatronic-mail-mcp-bsl59l?v=9f9685aa97f77611934e35a427568efc)](https://m8ven.ai/mcp/bulatronic-mail-mcp-bsl59l?s=readme)
 
 <a id="russian-english-switch"></a>
 **Язык / Language:** [Русский](#russian) · [English](#english)
